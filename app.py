@@ -3,58 +3,46 @@ import pandas as pd
 import random
 
 st.set_page_config(
-
     page_title="Quiz Kids",
-
     page_icon="⭐",
-
     layout="centered"
-
 )
 
 # CSS mobile
 st.markdown("""
-
 <style>
 
 .stButton button {
-
 width:100%;
-
-height:60px;
-
-font-size:20px;
-
-border-radius:15px;
-
+height:55px;
+font-size:18px;
+border-radius:12px;
 background-color:#4CAF50;
-
 color:white;
-
 }
 
 div[data-baseweb="radio"]{
-
 font-size:18px;
-
 }
 
 </style>
-
 """, unsafe_allow_html=True)
 
 st.title("⭐ Quiz Divertido")
 
 nome = st.text_input("Digite seu nome:")
 
+# carregar dados
 df = pd.read_csv("questoes.csv",encoding="utf-8")
 
 df.columns=['questao','correta']
 
-# criar quiz
+# gerar quiz apenas uma vez
 if "quiz" not in st.session_state:
 
-    quiz_df=df.sample(10)
+    qtd=min(10,len(df))
+
+    quiz_df=df.sample(qtd)
 
     perguntas=[]
 
@@ -111,7 +99,7 @@ for i,q in enumerate(st.session_state.quiz):
 
         index=0,
 
-        key=i
+        key=f"q{i}"
 
     )
 
@@ -121,71 +109,73 @@ for i,q in enumerate(st.session_state.quiz):
 
     respostas.append(escolha)
 
-# progresso
-st.progress(respondidas/10)
+total=len(st.session_state.quiz)
 
-st.write(f"{respondidas}/10 respondidas")
+# progresso
+st.progress(respondidas/total)
+
+st.write(f"{respondidas}/{total} respondidas")
 
 # finalizar
 if st.button("🎯 Finalizar"):
 
-    acertos=0
+    if respondidas<total:
 
-    for i,q in enumerate(st.session_state.quiz):
-
-        if respostas[i]==q['correta']:
-
-            acertos+=1
-
-    st.divider()
-
-    st.header("Resultado")
-
-    st.metric("Acertos",f"{acertos}/10")
-
-# estrelas
-    if acertos>=9:
-
-        estrelas=3
-
-    elif acertos>=7:
-
-        estrelas=2
-
-    elif acertos>=5:
-
-        estrelas=1
+        st.warning("Responda todas as perguntas!")
 
     else:
 
-        estrelas=0
+        acertos=0
 
-    estrelas_txt="⭐"*estrelas
+        for i,q in enumerate(st.session_state.quiz):
 
-    if estrelas==0:
+            if respostas[i]==q['correta']:
 
-        estrelas_txt="😢"
+                acertos+=1
 
-    st.header(estrelas_txt)
+        st.divider()
 
-# mensagens
-    if estrelas==3:
+        st.header("Resultado")
 
-        st.balloons()
+        st.metric("Acertos",f"{acertos}/{total}")
 
-        st.success(f"Excelente {nome}! Você é um gênio! 🏆")
+        # estrelas
+        if acertos>=9:
+            estrelas=3
+        elif acertos>=7:
+            estrelas=2
+        elif acertos>=5:
+            estrelas=1
+        else:
+            estrelas=0
 
-    elif estrelas==2:
+        estrelas_txt="⭐"*estrelas
 
-        st.success(f"Muito bem {nome}! Continue assim! 👏")
+        if estrelas==0:
+            estrelas_txt="😢"
 
-    elif estrelas==1:
+        st.header(estrelas_txt)
 
-        st.info(f"Bom trabalho {nome}! Vamos melhorar! 📚")
+        nome_txt = nome if nome else "Jogador"
 
-    else:
+        # mensagens
+        if estrelas==3:
 
-        st.warning(f"{nome}, vamos treinar mais! 💪")
+            st.balloons()
+
+            st.success(f"Excelente {nome_txt}! Você é um gênio! 🏆")
+
+        elif estrelas==2:
+
+            st.success(f"Muito bem {nome_txt}! Continue assim! 👏")
+
+        elif estrelas==1:
+
+            st.info(f"Bom trabalho {nome_txt}! Vamos melhorar! 📚")
+
+        else:
+
+            st.warning(f"{nome_txt}, vamos treinar mais! 💪")
 
 # reiniciar
 if st.button("🔄 Novo jogo"):
