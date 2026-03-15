@@ -21,15 +21,10 @@ st.markdown("""
 .stButton button {
 
 width:100%;
-
 height:55px;
-
 font-size:18px;
-
 border-radius:12px;
-
 background-color:#4CAF50;
-
 color:white;
 
 }
@@ -57,10 +52,12 @@ materia = st.sidebar.radio(
 "Escolha a matéria:",
 
 [
+
 "Português",
 "Matemática",
 "Geografia",
 "História"
+
 ]
 
 )
@@ -77,12 +74,9 @@ if os.path.exists(arquivo):
 
         arquivo,
 
-        encoding="utf-8",
-
+        encoding="utf-8-sig",
         sep=None,
-
         engine="python",
-
         on_bad_lines="skip"
 
     )
@@ -93,13 +87,14 @@ else:
 
     st.stop()
 
-# limpar nomes colunas (evita erro de espaço)
+# limpar nomes colunas
 df.columns=(
+
     df.columns
     .str.strip()
     .str.replace('\ufeff','')
-    .str.normalize('NFKD')
-    )
+
+)
 
 # validar colunas
 colunas=[
@@ -118,6 +113,10 @@ if not all(col in df.columns for col in colunas):
 
     st.error("CSV precisa ter colunas: Questão, Correta, Incorreta1, Incorreta2")
 
+    st.write("Colunas encontradas:")
+
+    st.write(df.columns.tolist())
+
     st.stop()
 
 # remover linhas vazias
@@ -132,7 +131,9 @@ if "materia" not in st.session_state:
 
 if st.session_state.materia!=materia:
 
-    st.session_state.clear()
+    for key in list(st.session_state.keys()):
+
+        del st.session_state[key]
 
     st.session_state.materia=materia
 
@@ -178,6 +179,8 @@ respondidas=0
 
 respostas=[]
 
+total=len(st.session_state.quiz)
+
 for i,q in enumerate(st.session_state.quiz):
 
     st.divider()
@@ -211,26 +214,34 @@ for i,q in enumerate(st.session_state.quiz):
     respostas.append(escolha)
 
 # progresso
-st.progress(respondidas/10)
+st.progress(respondidas/total)
 
-st.write(f"{respondidas}/10 respondidas")
+st.write(f"{respondidas}/{total} respondidas")
 
 # FINALIZAR
 if st.button("🎯 Finalizar"):
 
     acertos=0
 
-    for i,q in enumerate(st.session_state.quiz):
-
-        if q['correta'] in respostas[i]:
-
-            acertos+=1
-
     st.divider()
 
     st.header("Resultado")
 
-    st.metric("Acertos",f"{acertos}/10")
+    for i,q in enumerate(st.session_state.quiz):
+
+        if respostas[i].endswith(q['correta']):
+
+            acertos+=1
+
+            st.success(f"Questão {i+1} correta")
+
+        else:
+
+            st.error(f"Questão {i+1} errada")
+
+            st.info(f"Resposta correta: {q['correta']}")
+
+    st.metric("Acertos",f"{acertos}/{total}")
 
 # estrelas
 
@@ -281,6 +292,8 @@ if st.button("🎯 Finalizar"):
 # novo jogo
 if st.button("🔄 Novo jogo"):
 
-    st.session_state.quiz=None
+    if "quiz" in st.session_state:
+
+        del st.session_state["quiz"]
 
     st.rerun()
