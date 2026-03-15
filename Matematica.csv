@@ -1,21 +1,21 @@
 ﻿Questão,Resposta Correta,Incorreta 1,Incorreta 2
-"Qual é o valor posicional do algarismo 7 no número 1.742?,""700"",""70"",""7"""
-"No sistema romano, como representamos o número 49?,""XLIX"",""XLVIIII"",""IL"""
-"Qual é o sucessor do maior número de três algarismos?,""1.000"",""999"",""1.001"""
-"Um sistema de numeração que agrupa elementos de 10 em 10 é chamado de:,""Decimal"",""Binário"",""Romano"""
-"Como se escreve 1.550 em numeração egípcia (usando a lógica do sistema)?,""Um lótus e cinco cordas"",""Cinco lótus e uma corda"",""Uma flor de lótus e cinco bastões"""
-"Qual o resultado da soma de 1.250 com seu sucessor?,""2.501"",""2.500"",""2.502"""
-"Em uma subtração, o minuendo é 100 e o resto é 35. Qual o subtraendo?,""65"",""75"",""135"""
-"Qual propriedade da multiplicação justifica que 15 x 1 = 15?,""Elemento Neutro"",""Comutativa"",""Associativa"""
-"Se uma dúzia de ovos custa R$ 12, quanto custam 15 dúzias?,""180"",""150"",""165"""
-"Numa divisão, o divisor é 5, o quociente é 12 e o resto é 2. Qual o dividendo?,""62"",""60"",""58"""
-"Qual é o antecessor do número 1.000?,""999"",""1.001"",""990"""
-"Em '25 + 10 = 35', o número 35 é chamado de:,""Soma ou Total"",""Parcela"",""Diferença"""
-"Qual o valor de 0 dividido por 5?,""0"",""5"",""Não existe"""
-"Se multiplicarmos qualquer número natural por zero, o resultado será:,""0"",""O próprio número"",""1"""
-"Como representamos 'três mil, quatrocentos e dois' em algarismos?,""3.402"",""3.420"",""3.042"""
-"A diferença entre 1.500 e 850 é:,""650"",""750"",""550"""
-"Quantas ordens tem o número 12.345?,""5"",""2"",""10"""
-"O número romano 'CM' representa qual valor decimal?,""900"",""1100"",""1000"""
-"Uma caixa tem 12 bombons. Quantos bombons há em 10 caixas?,""120"",""112"",""22"""
-"Se eu tenho 50 reais e gasto 12 reais, com quanto eu fico?,""38"",""42"",""32"""
+Qual é o valor posicional do algarismo 7 no número 1.742?,700,70,7
+No sistema romano, como representamos o número 49?,XLIX,XLVIIII,IL
+Qual é o sucessor do maior número de três algarismos?,1.000,999,1.001
+Um sistema de numeração que agrupa elementos de 10 em 10 é chamado de:,Decimal,Binário,Romano
+Como se escreve 1.550 em numeração egípcia (usando a lógica do sistema)?,Um lótus e cinco cordas,Cinco lótus e uma corda,Uma flor de lótus e cinco bastões
+Qual o resultado da soma de 1.250 com seu sucessor?,2.501,2.500,2.502
+Em uma subtração, o minuendo é 100 e o resto é 35. Qual o subtraendo?,65,75,135
+Qual propriedade da multiplicação justifica que 15 x 1 = 15?,Elemento Neutro,Comutativa,Associativa
+Se uma dúzia de ovos custa R$ 12, quanto custam 15 dúzias?,180,150,165
+Numa divisão, o divisor é 5, o quociente é 12 e o resto é 2. Qual o dividendo?,62,60,58
+Qual é o antecessor do número 1.000?,999,1.001,990
+Em '25 + 10 = 35', o número 35 é chamado de:,Soma ou Total,Parcela,Diferença
+Qual o valor de 0 dividido por 5?,0,5,Não existe
+Se multiplicarmos qualquer número natural por zero, o resultado será:,0,O próprio número,1
+Como representamos 'três mil, quatrocentos e dois' em algarismos?,3.402,3.420,3.042
+A diferença entre 1.500 e 850 é:,650,750,550
+Quantas ordens tem o número 12.345?,5,2,10
+O número romano 'CM' representa qual valor decimal?,900,1100,1000
+Uma caixa tem 12 bombons. Quantos bombons há em 10 caixas?,120,112,22
+Se eu tenho 50 reais e gasto 12 reais, com quanto eu fico?,38,42,32
