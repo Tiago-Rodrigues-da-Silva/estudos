@@ -73,7 +73,13 @@ st.sidebar.success(materia)
 # carregar CSV
 if os.path.exists(arquivo):
 
-    df=pd.read_csv(arquivo,encoding="utf-8")
+    df=pd.read_csv(
+        arquivo,
+        encoding="utf-8",
+        sep=None,
+        engine="python",
+        on_bad_lines="skip"
+        )
 
 else:
 
