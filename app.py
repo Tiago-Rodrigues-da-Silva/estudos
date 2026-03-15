@@ -1,14 +1,15 @@
 import streamlit as st
 import pandas as pd
 import random
+import os
 
 st.set_page_config(
     page_title="Quiz Kids",
     page_icon="⭐",
-    layout="centered"
+    layout="wide"
 )
 
-# CSS mobile
+# CSS
 st.markdown("""
 <style>
 
@@ -28,21 +29,58 @@ font-size:18px;
 </style>
 """, unsafe_allow_html=True)
 
-st.title("⭐ Quiz Divertido")
+# nome fixo
+nome="Antônia"
 
-nome = st.text_input("Digite seu nome:")
+st.title("⭐ Plataforma de Estudos")
 
-# carregar dados
-df = pd.read_csv("questoes.csv",encoding="utf-8")
+# MENU LATERAL
+st.sidebar.title("Matérias")
 
-df.columns=['questao','correta']
+materia = st.sidebar.radio(
 
-# gerar quiz apenas uma vez
+"Escolha a matéria:",
+
+[
+"Português",
+"Matemática",
+"Geografia",
+"História"
+]
+
+)
+
+arquivo = materia.replace("ê","e").replace("á","a").replace("ó","o")+".csv"
+
+st.sidebar.write(f"Matéria atual:")
+st.sidebar.success(materia)
+
+# carregar CSV
+if os.path.exists(arquivo):
+
+    df=pd.read_csv(arquivo,encoding="utf-8")
+
+    df.columns=['questao','correta']
+
+else:
+
+    st.error("Arquivo não encontrado")
+    st.stop()
+
+# reiniciar quiz quando trocar matéria
+if "materia" not in st.session_state:
+
+    st.session_state.materia=materia
+
+if st.session_state.materia!=materia:
+
+    st.session_state.clear()
+    st.session_state.materia=materia
+
+# gerar quiz
 if "quiz" not in st.session_state:
 
-    qtd=min(10,len(df))
-
-    quiz_df=df.sample(qtd)
+    quiz_df=df.sample(min(10,len(df)))
 
     perguntas=[]
 
@@ -78,7 +116,9 @@ if "quiz" not in st.session_state:
 
     st.session_state.quiz=perguntas
 
-# perguntas
+# titulo matéria
+st.header(f"📚 {materia}")
+
 respondidas=0
 
 respostas=[]
@@ -99,7 +139,7 @@ for i,q in enumerate(st.session_state.quiz):
 
         index=0,
 
-        key=f"q{i}"
+        key=i
 
     )
 
@@ -109,77 +149,77 @@ for i,q in enumerate(st.session_state.quiz):
 
     respostas.append(escolha)
 
-total=len(st.session_state.quiz)
-
 # progresso
-st.progress(respondidas/total)
+st.progress(respondidas/10)
 
-st.write(f"{respondidas}/{total} respondidas")
+st.write(f"{respondidas}/10 respondidas")
 
 # finalizar
 if st.button("🎯 Finalizar"):
 
-    if respondidas<total:
+    acertos=0
 
-        st.warning("Responda todas as perguntas!")
+    for i,q in enumerate(st.session_state.quiz):
+
+        if respostas[i]==q['correta']:
+
+            acertos+=1
+
+    st.divider()
+
+    st.header("Resultado")
+
+    st.metric("Acertos",f"{acertos}/10")
+
+# estrelas
+
+    if acertos>=9:
+
+        estrelas=3
+
+    elif acertos>=7:
+
+        estrelas=2
+
+    elif acertos>=5:
+
+        estrelas=1
 
     else:
 
-        acertos=0
+        estrelas=0
 
-        for i,q in enumerate(st.session_state.quiz):
+    estrelas_txt="⭐"*estrelas
 
-            if respostas[i]==q['correta']:
+    if estrelas==0:
 
-                acertos+=1
+        estrelas_txt="😢"
 
-        st.divider()
+    st.header(estrelas_txt)
 
-        st.header("Resultado")
+# mensagens
 
-        st.metric("Acertos",f"{acertos}/{total}")
+    if estrelas==3:
 
-        # estrelas
-        if acertos>=9:
-            estrelas=3
-        elif acertos>=7:
-            estrelas=2
-        elif acertos>=5:
-            estrelas=1
-        else:
-            estrelas=0
+        st.balloons()
 
-        estrelas_txt="⭐"*estrelas
+        st.success(f"Excelente {nome}! 🏆")
 
-        if estrelas==0:
-            estrelas_txt="😢"
+    elif estrelas==2:
 
-        st.header(estrelas_txt)
+        st.success(f"Muito bem {nome}! 👏")
 
-        nome_txt = nome if nome else "Jogador"
+    elif estrelas==1:
 
-        # mensagens
-        if estrelas==3:
+        st.info(f"Bom trabalho {nome}! 📚")
 
-            st.balloons()
+    else:
 
-            st.success(f"Excelente {nome_txt}! Você é um gênio! 🏆")
+        st.warning(f"{nome}, vamos treinar mais! 💪")
 
-        elif estrelas==2:
-
-            st.success(f"Muito bem {nome_txt}! Continue assim! 👏")
-
-        elif estrelas==1:
-
-            st.info(f"Bom trabalho {nome_txt}! Vamos melhorar! 📚")
-
-        else:
-
-            st.warning(f"{nome_txt}, vamos treinar mais! 💪")
-
-# reiniciar
+# novo jogo
 if st.button("🔄 Novo jogo"):
 
-    st.session_state.clear()
+    st.session_state.quiz=None
 
     st.rerun()
