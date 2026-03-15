@@ -70,16 +70,22 @@ arquivo = materia.replace("ê","e").replace("á","a").replace("í","i")+".csv"
 
 st.sidebar.success(materia)
 
-# carregar CSV
+# carregar CSV robusto
 if os.path.exists(arquivo):
 
     df=pd.read_csv(
+
         arquivo,
+
         encoding="utf-8",
+
         sep=None,
+
         engine="python",
+
         on_bad_lines="skip"
-        )
+
+    )
 
 else:
 
@@ -87,7 +93,34 @@ else:
 
     st.stop()
 
-# reiniciar se trocar matéria
+# limpar nomes colunas (evita erro de espaço)
+df.columns=df.columns.str.strip()
+
+# validar colunas
+colunas=[
+
+"Questão",
+
+"Correta",
+
+"Incorreta1",
+
+"Incorreta2"
+
+]
+
+if not all(col in df.columns for col in colunas):
+
+    st.error("CSV precisa ter colunas: Questão, Correta, Incorreta1, Incorreta2")
+
+    st.stop()
+
+# remover linhas vazias
+df=df.dropna()
+
+df=df.reset_index(drop=True)
+
+# reiniciar quiz se trocar matéria
 if "materia" not in st.session_state:
 
     st.session_state.materia=materia
@@ -101,10 +134,8 @@ if st.session_state.materia!=materia:
 # gerar quiz
 if "quiz" not in st.session_state:
 
-    # remover duplicadas
     df=df.drop_duplicates(subset=['Questão'])
 
-    # selecionar 10 aleatórias
     quiz_df=df.sample(min(10,len(df))).reset_index(drop=True)
 
     perguntas=[]
@@ -113,11 +144,11 @@ if "quiz" not in st.session_state:
 
         opcoes=[
 
-            row['Resposta Correta'],
+            row['Correta'],
 
-            row['Incorreta 1'],
+            row['Incorreta1'],
 
-            row['Incorreta 2']
+            row['Incorreta2']
 
         ]
 
@@ -127,7 +158,7 @@ if "quiz" not in st.session_state:
 
             "questao":row['Questão'],
 
-            "correta":row['Resposta Correta'],
+            "correta":row['Correta'],
 
             "opcoes":opcoes
 
