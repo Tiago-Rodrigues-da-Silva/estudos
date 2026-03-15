@@ -6,14 +6,12 @@ import os
 st.set_page_config(
 
     page_title="Quiz Kids",
-
     page_icon="⭐",
-
     layout="wide"
 
 )
 
-# CSS mobile
+# CSS mobile + scroll top
 st.markdown("""
 
 <style>
@@ -35,11 +33,16 @@ font-size:18px;
 
 }
 
+/* scroll topo */
+
+html {
+scroll-behavior:smooth;
+}
+
 </style>
 
 """, unsafe_allow_html=True)
 
-# nome fixo
 nome="Antônia"
 
 st.title("⭐ Plataforma de Estudos")
@@ -52,28 +55,24 @@ materia = st.sidebar.radio(
 "Escolha a matéria:",
 
 [
-
 "Português",
 "Matemática",
 "Geografia",
 "História"
-
 ]
 
 )
 
-# nome arquivo
 arquivo = materia.replace("ê","e").replace("á","a").replace("í","i")+".csv"
 
 st.sidebar.success(materia)
 
-# carregar CSV robusto
+# carregar CSV
 if os.path.exists(arquivo):
 
     df=pd.read_csv(
 
         arquivo,
-
         encoding="utf-8-sig",
         sep=None,
         engine="python",
@@ -87,7 +86,7 @@ else:
 
     st.stop()
 
-# limpar nomes colunas
+# limpar colunas
 df.columns=(
 
     df.columns
@@ -96,44 +95,35 @@ df.columns=(
 
 )
 
-# validar colunas
 colunas=[
 
 "Questão",
-
 "Correta",
-
 "Incorreta1",
-
 "Incorreta2"
 
 ]
 
 if not all(col in df.columns for col in colunas):
 
-    st.error("CSV precisa ter colunas: Questão, Correta, Incorreta1, Incorreta2")
-
-    st.write("Colunas encontradas:")
+    st.error("CSV inválido")
 
     st.write(df.columns.tolist())
 
     st.stop()
 
-# remover linhas vazias
 df=df.dropna()
 
 df=df.reset_index(drop=True)
 
-# reiniciar quiz se trocar matéria
+# reset se trocar matéria
 if "materia" not in st.session_state:
 
     st.session_state.materia=materia
 
 if st.session_state.materia!=materia:
 
-    for key in list(st.session_state.keys()):
-
-        del st.session_state[key]
+    st.session_state.clear()
 
     st.session_state.materia=materia
 
@@ -151,9 +141,7 @@ if "quiz" not in st.session_state:
         opcoes=[
 
             row['Correta'],
-
             row['Incorreta1'],
-
             row['Incorreta2']
 
         ]
@@ -163,16 +151,16 @@ if "quiz" not in st.session_state:
         perguntas.append({
 
             "questao":row['Questão'],
-
             "correta":row['Correta'],
-
             "opcoes":opcoes
 
         })
 
     st.session_state.quiz=perguntas
 
-# titulo
+# topo (ancora)
+st.markdown("<div id='top'></div>",unsafe_allow_html=True)
+
 st.header(f"📚 {materia}")
 
 respondidas=0
@@ -203,7 +191,7 @@ for i,q in enumerate(st.session_state.quiz):
 
         index=0,
 
-        key=i
+        key=f"q_{i}"
 
     )
 
@@ -243,8 +231,6 @@ if st.button("🎯 Finalizar"):
 
     st.metric("Acertos",f"{acertos}/{total}")
 
-# estrelas
-
     if acertos>=9:
 
         estrelas=3
@@ -269,8 +255,6 @@ if st.button("🎯 Finalizar"):
 
     st.header(estrelas_txt)
 
-# mensagens
-
     if estrelas==3:
 
         st.balloons()
@@ -289,11 +273,30 @@ if st.button("🎯 Finalizar"):
 
         st.warning(f"{nome}, vamos treinar mais! 💪")
 
-# novo jogo
+# NOVO JOGO UX PERFEITA
 if st.button("🔄 Novo jogo"):
 
+    # limpar quiz
     if "quiz" in st.session_state:
 
         del st.session_state["quiz"]
+
+    # limpar respostas
+    for key in list(st.session_state.keys()):
+
+        if str(key).startswith("q_"):
+
+            del st.session_state[key]
+
+    # voltar topo
+    st.markdown("""
+
+    <script>
+
+    window.scrollTo(0,0);
+
+    </script>
+
+    """,unsafe_allow_html=True)
 
     st.rerun()
