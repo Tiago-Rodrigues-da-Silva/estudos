@@ -94,7 +94,12 @@ else:
     st.stop()
 
 # limpar nomes colunas (evita erro de espaço)
-df.columns=df.columns.str.strip()
+df.columns=(
+    df.columns
+    .str.strip()
+    .str.replace('\ufeff','')
+    .str.normalize('NFKD')
+    )
 
 # validar colunas
 colunas=[
