@@ -4,29 +4,44 @@ import random
 import os
 
 st.set_page_config(
+
     page_title="Quiz Kids",
+
     page_icon="⭐",
+
     layout="wide"
+
 )
 
-# CSS
+# CSS mobile
 st.markdown("""
+
 <style>
 
 .stButton button {
+
 width:100%;
+
 height:55px;
+
 font-size:18px;
+
 border-radius:12px;
+
 background-color:#4CAF50;
+
 color:white;
+
 }
 
 div[data-baseweb="radio"]{
+
 font-size:18px;
+
 }
 
 </style>
+
 """, unsafe_allow_html=True)
 
 # nome fixo
@@ -34,7 +49,7 @@ nome="Antônia"
 
 st.title("⭐ Plataforma de Estudos")
 
-# MENU LATERAL
+# MENU
 st.sidebar.title("Matérias")
 
 materia = st.sidebar.radio(
@@ -50,9 +65,9 @@ materia = st.sidebar.radio(
 
 )
 
-arquivo = materia.replace("ê","e").replace("á","a").replace("ó","o")+".csv"
+# nome arquivo
+arquivo = materia.replace("ê","e").replace("á","a").replace("í","i")+".csv"
 
-st.sidebar.write(f"Matéria atual:")
 st.sidebar.success(materia)
 
 # carregar CSV
@@ -60,14 +75,13 @@ if os.path.exists(arquivo):
 
     df=pd.read_csv(arquivo,encoding="utf-8")
 
-    df.columns=['questao','correta']
-
 else:
 
     st.error("Arquivo não encontrado")
+
     st.stop()
 
-# reiniciar quiz quando trocar matéria
+# reiniciar se trocar matéria
 if "materia" not in st.session_state:
 
     st.session_state.materia=materia
@@ -75,40 +89,39 @@ if "materia" not in st.session_state:
 if st.session_state.materia!=materia:
 
     st.session_state.clear()
+
     st.session_state.materia=materia
 
 # gerar quiz
 if "quiz" not in st.session_state:
 
-    quiz_df=df.sample(min(10,len(df)))
+    # remover duplicadas
+    df=df.drop_duplicates(subset=['Questão'])
+
+    # selecionar 10 aleatórias
+    quiz_df=df.sample(min(10,len(df))).reset_index(drop=True)
 
     perguntas=[]
 
-    todas=df['correta'].tolist()
-
     for _,row in quiz_df.iterrows():
 
-        correta=row['correta']
+        opcoes=[
 
-        erradas=[]
+            row['Resposta Correta'],
 
-        while len(erradas)<2:
+            row['Incorreta 1'],
 
-            r=random.choice(todas)
+            row['Incorreta 2']
 
-            if r!=correta and r not in erradas:
-
-                erradas.append(r)
-
-        opcoes=[correta]+erradas
+        ]
 
         random.shuffle(opcoes)
 
         perguntas.append({
 
-            "questao":row['questao'],
+            "questao":row['Questão'],
 
-            "correta":correta,
+            "correta":row['Resposta Correta'],
 
             "opcoes":opcoes
 
@@ -116,7 +129,7 @@ if "quiz" not in st.session_state:
 
     st.session_state.quiz=perguntas
 
-# titulo matéria
+# titulo
 st.header(f"📚 {materia}")
 
 respondidas=0
@@ -129,13 +142,19 @@ for i,q in enumerate(st.session_state.quiz):
 
     st.subheader(f"Questão {i+1}")
 
-    opcoes=["-- Escolha --"]+q['opcoes']
+    letras=["A","B","C"]
+
+    opcoes_formatadas=["-- Escolha --"]
+
+    for j,op in enumerate(q['opcoes']):
+
+        opcoes_formatadas.append(f"{letras[j]}) {op}")
 
     escolha=st.radio(
 
         q['questao'],
 
-        opcoes,
+        opcoes_formatadas,
 
         index=0,
 
@@ -154,14 +173,14 @@ st.progress(respondidas/10)
 
 st.write(f"{respondidas}/10 respondidas")
 
-# finalizar
+# FINALIZAR
 if st.button("🎯 Finalizar"):
 
     acertos=0
 
     for i,q in enumerate(st.session_state.quiz):
 
-        if respostas[i]==q['correta']:
+        if q['correta'] in respostas[i]:
 
             acertos+=1
 
