@@ -1,28 +1,30 @@
 # app.py
-
 import streamlit as st
+from utils.style import hide_streamlit_menu
 
-# Importar páginas
-from pages.home import show_home
-from pages.quiz import show_quiz
+# ================================
+# Configurações gerais do app
+# ================================
+hide_streamlit_menu()  # esconde menu do Streamlit, header e footer
 
-# Importar estilo responsivo
-from utils.style import apply_responsive_style
-
-# Aplicar CSS responsivo (desktop e mobile)
-apply_responsive_style()
-
-# Configuração da página
 st.set_page_config(
     page_title="Quiz Kids",
     page_icon="⭐",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded",
+    menu_items={  # Remove opções do menu padrão
+        'Get Help': None,
+        'Report a bug': None,
+        'About': None
+    }
 )
 
-# Sidebar / Menu lateral
+# ================================
+# Menu lateral customizado
+# ================================
 st.sidebar.title("Menu")
 pagina = st.sidebar.radio(
-    "Escolha",
+    "Escolha a página:",
     [
         "🏠 Home",
         "Português",
@@ -32,7 +34,16 @@ pagina = st.sidebar.radio(
     ]
 )
 
-# Renderização das páginas
+# ================================
+# Importar páginas (agora sem usar 'pages/')
+# ================================
+# Renomeie sua pasta 'pages/' para 'pages_src/' ou similar
+from pages_src.home import show_home
+from pages_src.quiz import show_quiz
+
+# ================================
+# Renderizar página selecionada
+# ================================
 if pagina == "🏠 Home":
     show_home()
 else:
