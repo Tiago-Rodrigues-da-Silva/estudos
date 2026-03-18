@@ -1,5 +1,7 @@
 import gspread
 import pandas as pd
+import streamlit as st
+import os
 
 from datetime import datetime
 
@@ -11,16 +13,30 @@ def conectar():
     scope=[
 
         "https://www.googleapis.com/auth/spreadsheets",
+
         "https://www.googleapis.com/auth/drive"
 
     ]
 
-    creds=Credentials.from_service_account_file(
+    # ⭐ local
+    if os.path.exists("credentials.json"):
 
-        "credentials.json",
-        scopes=scope
+        creds=Credentials.from_service_account_file(
 
-    )
+            "credentials.json",
+
+            scopes=scope
+
+        )
+
+    # ⭐ cloud
+    else:
+
+        creds=Credentials.from_service_account_info(
+
+            st.secrets["gcp_service_account"]
+
+        ).with_scopes(scope)
 
     client=gspread.authorize(creds)
 
@@ -38,8 +54,11 @@ def salvar(nome,materia,nota):
     nova_linha=[
 
         nome,
+
         materia,
-        float(nota),
+
+        float(nota),   # ⭐ sempre número real
+
         datetime.now().strftime("%d/%m/%Y %H:%M")
 
     ]
@@ -49,32 +68,30 @@ def salvar(nome,materia,nota):
 
 def carregar_resultados():
 
-    client = conectar()
+    client=conectar()
 
-    sheet = client.open("resultados_quiz")
+    sheet=client.open("resultados_quiz")
 
-    worksheet = sheet.sheet1
+    worksheet=sheet.sheet1
 
-    dados = worksheet.get_all_records()
+    dados=worksheet.get_all_records()
 
-    df = pd.DataFrame(dados)
+    df=pd.DataFrame(dados)
 
     if df.empty:
 
         return df
 
-    # ⭐ normalização segura da nota
-    df['Nota'] = df['Nota'].astype(str)
+    # ⭐ normalização robusta da nota
+    df['Nota']=df['Nota'].astype(str)
 
-    # troca vírgula decimal por ponto
-    df['Nota'] = df['Nota'].str.replace(",",".",regex=False)
+    df['Nota']=df['Nota'].str.replace(",",".",regex=False)
 
-    # converte para número
-    df['Nota'] = pd.to_numeric(df['Nota'],errors='coerce')
+    df['Nota']=pd.to_numeric(df['Nota'],errors='coerce')
 
-    # ⭐ proteção contra bug 240
-    if df['Nota'].max() > 10:
+    # proteção bug 240
+    if df['Nota'].max()>10:
 
-        df['Nota'] = df['Nota']/100
+        df['Nota']=df['Nota']/100
 
     return df
