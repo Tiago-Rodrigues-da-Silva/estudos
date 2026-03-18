@@ -1,11 +1,15 @@
 # app.py
 
 import streamlit as st
+
+# Importar páginas
 from pages.home import show_home
 from pages.quiz import show_quiz
+
+# Importar estilo responsivo
 from utils.style import apply_responsive_style
 
-# Aplica o CSS responsivo (desktop e mobile com botão menu)
+# Aplicar CSS responsivo (desktop e mobile)
 apply_responsive_style()
 
 # Configuração da página
@@ -15,10 +19,8 @@ st.set_page_config(
     layout="wide"
 )
 
-# Título do sidebar
+# Sidebar / Menu lateral
 st.sidebar.title("Menu")
-
-# Menu de seleção de página
 pagina = st.sidebar.radio(
     "Escolha",
     [
@@ -30,7 +32,7 @@ pagina = st.sidebar.radio(
     ]
 )
 
-# Renderiza a página selecionada
+# Renderização das páginas
 if pagina == "🏠 Home":
     show_home()
 else:
