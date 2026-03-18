@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import random
 import os
+from datetime import datetime
 
 st.set_page_config(
 
@@ -11,7 +12,7 @@ st.set_page_config(
 
 )
 
-# CSS mobile + scroll top
+# CSS
 st.markdown("""
 
 <style>
@@ -27,47 +28,150 @@ color:white;
 
 }
 
-div[data-baseweb="radio"]{
-
-font-size:18px;
-
-}
-
-/* scroll topo */
-
-html {
-scroll-behavior:smooth;
-}
-
 </style>
 
 """, unsafe_allow_html=True)
 
 nome="Antônia"
 
-st.title("⭐ Plataforma de Estudos")
+# salvar resultado
+def salvar_resultado(nome,materia,acertos,total):
+
+    arquivo="resultados.csv"
+
+    nota=round(acertos*0.3,1)
+
+    novo=pd.DataFrame([{
+
+        "Nome":nome,
+        "Disciplina":materia,
+        "Nota":nota,
+        "Data":datetime.now().strftime("%Y-%m-%d %H:%M")
+
+    }])
+
+    if os.path.exists(arquivo):
+
+        antigo=pd.read_csv(arquivo)
+
+        antigo.columns=antigo.columns.str.strip()
+
+        # compatibilidade
+        antigo=antigo.rename(columns={
+
+            "nome":"Nome",
+            "disciplina":"Disciplina",
+            "acertos":"Acertos",
+            "total":"Total",
+            "data_hora":"Data"
+
+        })
+
+        if "Nota" not in antigo.columns:
+
+            if "Acertos" in antigo.columns:
+
+                antigo["Nota"]=round(antigo["Acertos"]*0.3,1)
+
+        if "Data" not in antigo.columns:
+
+            antigo["Data"]=""
+
+        antigo=antigo[["Nome","Disciplina","Nota","Data"]]
+
+        df=pd.concat([antigo,novo],ignore_index=True)
+
+    else:
+
+        df=novo
+
+    df.to_csv(arquivo,index=False)
 
 # MENU
-st.sidebar.title("Matérias")
+st.sidebar.title("Menu")
 
-materia = st.sidebar.radio(
+pagina=st.sidebar.radio(
 
-"Escolha a matéria:",
+"Escolha:",
 
 [
+
+"🏠 Home",
 "Português",
 "Matemática",
 "Geografia",
 "História"
+
 ]
 
 )
 
-arquivo = materia.replace("ê","e").replace("á","a").replace("í","i")+".csv"
+# HOME
+if pagina=="🏠 Home":
 
-st.sidebar.success(materia)
+    st.title("⭐ Plataforma de Estudos")
 
-# carregar CSV
+    st.header("Histórico de Resultados")
+
+    if os.path.exists("resultados.csv"):
+
+        df=pd.read_csv("resultados.csv")
+
+        df.columns=df.columns.str.strip()
+
+        df=df.rename(columns={
+
+            "nome":"Nome",
+            "disciplina":"Disciplina",
+            "data_hora":"Data"
+
+        })
+
+        if "Nota" not in df.columns:
+
+            if "Acertos" in df.columns:
+
+                df["Nota"]=round(df["Acertos"]*0.3,1)
+
+            elif "acertos" in df.columns:
+
+                df["Nota"]=round(df["acertos"]*0.3,1)
+
+        if "Data" not in df.columns:
+
+            df["Data"]=""
+
+        df=df[["Nome","Disciplina","Nota","Data"]]
+
+        df=df.sort_values("Data",ascending=False)
+
+        st.dataframe(
+
+            df,
+
+            use_container_width=True
+
+        )
+
+        st.metric(
+
+            "Total de tentativas",
+
+            len(df)
+
+        )
+
+    else:
+
+        st.info("Nenhum resultado ainda")
+
+    st.stop()
+
+# QUIZ
+materia=pagina
+
+arquivo=materia.replace("ê","e").replace("á","a").replace("í","i")+".csv"
+
 if os.path.exists(arquivo):
 
     df=pd.read_csv(
@@ -86,7 +190,6 @@ else:
 
     st.stop()
 
-# limpar colunas
 df.columns=(
 
     df.columns
@@ -108,15 +211,13 @@ if not all(col in df.columns for col in colunas):
 
     st.error("CSV inválido")
 
-    st.write(df.columns.tolist())
-
     st.stop()
 
 df=df.dropna()
 
 df=df.reset_index(drop=True)
 
-# reset se trocar matéria
+# reset matéria
 if "materia" not in st.session_state:
 
     st.session_state.materia=materia
@@ -132,7 +233,7 @@ if "quiz" not in st.session_state:
 
     df=df.drop_duplicates(subset=['Questão'])
 
-    quiz_df=df.sample(min(10,len(df))).reset_index(drop=True)
+    quiz_df=df.sample(min(10,len(df)))
 
     perguntas=[]
 
@@ -158,10 +259,7 @@ if "quiz" not in st.session_state:
 
     st.session_state.quiz=perguntas
 
-# topo (ancora)
-st.markdown("<div id='top'></div>",unsafe_allow_html=True)
-
-st.header(f"📚 {materia}")
+st.header(materia)
 
 respondidas=0
 
@@ -175,22 +273,19 @@ for i,q in enumerate(st.session_state.quiz):
 
     st.subheader(f"Questão {i+1}")
 
-    letras=["A","B","C"]
+    opcoes=["-- Escolha --"]
 
-    opcoes_formatadas=["-- Escolha --"]
+    letras=["A","B","C"]
 
     for j,op in enumerate(q['opcoes']):
 
-        opcoes_formatadas.append(f"{letras[j]}) {op}")
+        opcoes.append(f"{letras[j]}) {op}")
 
     escolha=st.radio(
 
         q['questao'],
-
-        opcoes_formatadas,
-
+        opcoes,
         index=0,
-
         key=f"q_{i}"
 
     )
@@ -201,19 +296,14 @@ for i,q in enumerate(st.session_state.quiz):
 
     respostas.append(escolha)
 
-# progresso
 st.progress(respondidas/total)
 
-st.write(f"{respondidas}/{total} respondidas")
+st.write(f"{respondidas}/{total}")
 
 # FINALIZAR
 if st.button("🎯 Finalizar"):
 
     acertos=0
-
-    st.divider()
-
-    st.header("Resultado")
 
     for i,q in enumerate(st.session_state.quiz):
 
@@ -229,74 +319,38 @@ if st.button("🎯 Finalizar"):
 
             st.info(f"Resposta correta: {q['correta']}")
 
-    st.metric("Acertos",f"{acertos}/{total}")
+    nota=round(acertos*0.3,1)
 
-    if acertos>=9:
+    st.metric("Nota",nota)
 
-        estrelas=3
+    if "resultado_salvo" not in st.session_state:
 
-    elif acertos>=7:
+        salvar_resultado(
 
-        estrelas=2
+            nome,
+            materia,
+            acertos,
+            total
 
-    elif acertos>=5:
+        )
 
-        estrelas=1
+        st.session_state.resultado_salvo=True
 
-    else:
-
-        estrelas=0
-
-    estrelas_txt="⭐"*estrelas
-
-    if estrelas==0:
-
-        estrelas_txt="😢"
-
-    st.header(estrelas_txt)
-
-    if estrelas==3:
-
-        st.balloons()
-
-        st.success(f"Excelente {nome}! 🏆")
-
-    elif estrelas==2:
-
-        st.success(f"Muito bem {nome}! 👏")
-
-    elif estrelas==1:
-
-        st.info(f"Bom trabalho {nome}! 📚")
-
-    else:
-
-        st.warning(f"{nome}, vamos treinar mais! 💪")
-
-# NOVO JOGO UX PERFEITA
+# NOVO JOGO
 if st.button("🔄 Novo jogo"):
 
-    # limpar quiz
     if "quiz" in st.session_state:
 
         del st.session_state["quiz"]
 
-    # limpar respostas
     for key in list(st.session_state.keys()):
 
         if str(key).startswith("q_"):
 
             del st.session_state[key]
 
-    # voltar topo
-    st.markdown("""
+    if "resultado_salvo" in st.session_state:
 
-    <script>
-
-    window.scrollTo(0,0);
-
-    </script>
-
-    """,unsafe_allow_html=True)
+        del st.session_state["resultado_salvo"]
 
     st.rerun()
