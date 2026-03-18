@@ -1,9 +1,10 @@
 # services/resultado_service.py
+import os
+from datetime import datetime
+
 import gspread
 import pandas as pd
 import streamlit as st
-import os
-from datetime import datetime
 from google.oauth2.service_account import Credentials
 
 # -----------------------------
@@ -12,7 +13,7 @@ from google.oauth2.service_account import Credentials
 def conectar():
     """
     Conecta ao Google Sheets usando:
-    - arquivo local 'credentials.json' no desenvolvimento
+    - 'credentials.json' no desenvolvimento local
     - st.secrets['gcp_service_account'] no Streamlit Cloud
     """
     scope = [
@@ -26,15 +27,14 @@ def conectar():
             "credentials.json",
             scopes=scope
         )
-    # ⭐ Produção / Streamlit Cloud
+    # ⭐ Streamlit Cloud
     elif "gcp_service_account" in st.secrets:
         creds = Credentials.from_service_account_info(
             st.secrets["gcp_service_account"]
         ).with_scopes(scope)
     else:
-        raise FileNotFoundError(
-            "Credenciais não encontradas! Coloque 'credentials.json' ou configure 'st.secrets'."
-        )
+        st.error("⚠️ Credenciais não encontradas! Coloque 'credentials.json' local ou configure 'st.secrets'.")
+        return None  # retorna None em vez de quebrar o app
 
     client = gspread.authorize(creds)
     return client
@@ -47,17 +47,25 @@ def salvar(nome: str, materia: str, nota):
     Salva uma linha de resultado no Google Sheet.
     """
     client = conectar()
-    sheet = client.open("resultados_quiz")
-    worksheet = sheet.sheet1
+    if client is None:
+        st.warning("Não foi possível salvar. Credenciais ausentes.")
+        return
 
-    nova_linha = [
-        nome,
-        materia,
-        float(nota),  # sempre número real
-        datetime.now().strftime("%d/%m/%Y %H:%M")
-    ]
+    try:
+        sheet = client.open("resultados_quiz")
+        worksheet = sheet.sheet1
 
-    worksheet.append_row(nova_linha)
+        nova_linha = [
+            nome,
+            materia,
+            float(nota),  # sempre número real
+            datetime.now().strftime("%d/%m/%Y %H:%M")
+        ]
+
+        worksheet.append_row(nova_linha)
+        st.success("Resultado salvo com sucesso!")
+    except Exception as e:
+        st.error(f"Erro ao salvar resultado: {e}")
 
 # -----------------------------
 # Carregar resultados
@@ -68,23 +76,30 @@ def carregar_resultados() -> pd.DataFrame:
     Faz normalização robusta da coluna 'Nota'.
     """
     client = conectar()
-    sheet = client.open("resultados_quiz")
-    worksheet = sheet.sheet1
+    if client is None:
+        return pd.DataFrame()  # retorna vazio se não tiver credenciais
 
-    dados = worksheet.get_all_records()
-    df = pd.DataFrame(dados)
+    try:
+        sheet = client.open("resultados_quiz")
+        worksheet = sheet.sheet1
 
-    if df.empty:
+        dados = worksheet.get_all_records()
+        df = pd.DataFrame(dados)
+
+        if df.empty:
+            return df
+
+        # ⭐ Normalização robusta da nota
+        if 'Nota' in df.columns:
+            df['Nota'] = df['Nota'].astype(str)
+            df['Nota'] = df['Nota'].str.replace(",", ".", regex=False)
+            df['Nota'] = pd.to_numeric(df['Nota'], errors='coerce')
+
+            # Proteção contra notas >10 (ex: 240 -> 2.4)
+            if df['Nota'].max() > 10:
+                df['Nota'] = df['Nota'] / 100
+
         return df
-
-    # ⭐ normalização robusta da nota
-    if 'Nota' in df.columns:
-        df['Nota'] = df['Nota'].astype(str)
-        df['Nota'] = df['Nota'].str.replace(",", ".", regex=False)
-        df['Nota'] = pd.to_numeric(df['Nota'], errors='coerce')
-
-        # proteção bug notas >10 (ex: 240 -> 2.4)
-        if df['Nota'].max() > 10:
-            df['Nota'] = df['Nota'] / 100
-
-    return df
+    except Exception as e:
+        st.error(f"Erro ao carregar resultados: {e}")
+        return pd.DataFrame()
