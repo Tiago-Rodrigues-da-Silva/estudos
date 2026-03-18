@@ -18,7 +18,7 @@ st.set_page_config(
 # ================================
 pagina = st.sidebar.radio(
     "Escolha a página:",
-    ["🏠 Home", "Português", "Matemática", "Geografia", "História"]
+    ["🏠 Home", "Matemática"]
 )
 
 # ================================

@@ -1,6 +1,7 @@
 # services/resultado_service.py
 import os
 from datetime import datetime
+import pytz
 
 import gspread
 import pandas as pd
@@ -55,11 +56,13 @@ def salvar(nome: str, materia: str, nota):
         sheet = client.open("resultados_quiz")
         worksheet = sheet.sheet1
 
+        fuso_brasilia = pytz.timezone("America/Sao_Paulo")
+
         nova_linha = [
             nome,
             materia,
             float(nota),  # sempre número real
-            datetime.now().strftime("%d/%m/%Y %H:%M")
+            datetime.now(fuso_brasilia).strftime("%d/%m/%Y %H:%M")  # horário de Brasília
         ]
 
         worksheet.append_row(nova_linha)
