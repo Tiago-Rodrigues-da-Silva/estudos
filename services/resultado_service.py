@@ -43,66 +43,91 @@ def conectar():
 # -----------------------------
 # Salvar resultado no Sheet
 # -----------------------------
-def salvar(nome: str, materia: str, nota):
-    """
-    Salva uma linha de resultado no Google Sheet.
-    """
+def salvar(usuario: str, nome: str, materia: str, nota):
+
     client = conectar()
+
     if client is None:
         st.warning("Não foi possível salvar. Credenciais ausentes.")
         return
 
     try:
+
         sheet = client.open("resultados_quiz")
+
         worksheet = sheet.sheet1
 
         fuso_brasilia = pytz.timezone("America/Sao_Paulo")
 
         nova_linha = [
+
+            usuario,   # ⭐ apenas adicionado
             nome,
             materia,
-            float(nota),  # sempre número real
-            datetime.now(fuso_brasilia).strftime("%d/%m/%Y %H:%M")  # horário de Brasília
+            float(nota),
+
+            datetime.now(fuso_brasilia).strftime(
+                "%d/%m/%Y %H:%M"
+            )
+
         ]
 
         worksheet.append_row(nova_linha)
+
         st.success("Resultado salvo com sucesso!")
+
     except Exception as e:
+
         st.error(f"Erro ao salvar resultado: {e}")
 
 # -----------------------------
 # Carregar resultados
 # -----------------------------
-def carregar_resultados() -> pd.DataFrame:
-    """
-    Retorna um DataFrame com todos os resultados do Sheet.
-    Faz normalização robusta da coluna 'Nota'.
-    """
+def carregar_resultados(usuario=None) -> pd.DataFrame:
+
     client = conectar()
+
     if client is None:
-        return pd.DataFrame()  # retorna vazio se não tiver credenciais
+        return pd.DataFrame()
 
     try:
+
         sheet = client.open("resultados_quiz")
+
         worksheet = sheet.sheet1
 
         dados = worksheet.get_all_records()
+
         df = pd.DataFrame(dados)
 
         if df.empty:
             return df
 
-        # ⭐ Normalização robusta da nota
-        if 'Nota' in df.columns:
-            df['Nota'] = df['Nota'].astype(str)
-            df['Nota'] = df['Nota'].str.replace(",", ".", regex=False)
-            df['Nota'] = pd.to_numeric(df['Nota'], errors='coerce')
+        # ⭐ filtro usuário (bug corrigido)
+        if usuario and 'Usuario' in df.columns:
 
-            # Proteção contra notas >10 (ex: 240 -> 2.4)
+            df = df[df['Usuario'] == usuario]
+
+        # normalização nota
+        if 'Nota' in df.columns:
+
+            df['Nota'] = df['Nota'].astype(str)
+
+            df['Nota'] = df['Nota'].str.replace(",", ".", regex=False)
+
+            df['Nota'] = pd.to_numeric(
+                df['Nota'],
+                errors='coerce'
+            )
+
             if df['Nota'].max() > 10:
+
                 df['Nota'] = df['Nota'] / 100
 
         return df
+
     except Exception as e:
+
         st.error(f"Erro ao carregar resultados: {e}")
+
         return pd.DataFrame()
