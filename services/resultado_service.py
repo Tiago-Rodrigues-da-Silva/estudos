@@ -96,24 +96,39 @@ def carregar_resultados(usuario=None) -> pd.DataFrame:
 
         worksheet = sheet.sheet1
 
-        dados = worksheet.get_all_records()
+        # ⭐ CORREÇÃO REAL
+        dados = worksheet.get_all_values()
 
-        df = pd.DataFrame(dados)
+        df = pd.DataFrame(
+            dados[1:],
+            columns=dados[0]
+        )
+
+        # ⭐ necessário no cloud
+        df.columns = df.columns.str.strip()
+
+        df = df.astype(str)
 
         if df.empty:
             return df
 
-        # ⭐ filtro usuário (bug corrigido)
+        # ⭐ filtro correto
         if usuario and 'Usuario' in df.columns:
 
-            df = df[df['Usuario'] == usuario]
+            usuario = str(usuario).strip()
+
+            df['Usuario'] = df[
+                'Usuario'
+            ].astype(str).str.strip()
+
+            df = df[
+                df['Usuario'] == usuario
+            ]
 
         # normalização nota
         if 'Nota' in df.columns:
 
-            df['Nota'] = df['Nota'].astype(str)
-
-            df['Nota'] = df['Nota'].str.replace(",", ".", regex=False)
+            df['Nota'] = df['Nota'].str.replace(",", ".")
 
             df['Nota'] = pd.to_numeric(
                 df['Nota'],
@@ -128,6 +143,8 @@ def carregar_resultados(usuario=None) -> pd.DataFrame:
 
     except Exception as e:
 
-        st.error(f"Erro ao carregar resultados: {e}")
+        st.error(
+            f"Erro ao carregar resultados: {e}"
+        )
 
         return pd.DataFrame()
