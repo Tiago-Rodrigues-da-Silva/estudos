@@ -6,7 +6,8 @@ def gerar_quiz(materia):
         "Matemática": "questoes_matematica",
         "Português": "questoes_portugues",
         "Geografia": "questoes_geografia",
-        "História": "questoes_historia"
+        "História": "questoes_historia",
+        "Espanhol": "questoes_espanhol"
     }
 
     nome_sheet = sheets.get(materia)
