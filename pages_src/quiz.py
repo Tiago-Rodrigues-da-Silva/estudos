@@ -46,13 +46,12 @@ def show_quiz(materia):
 
         st.subheader(f"Questão {i+1}")
 
-        escolha=st.radio(
-
-            q['questao'],
+        st.markdown(f"**Questão {i+1}**: {q['questao']}", unsafe_allow_html=True)
+        escolha = st.radio(
+            "",
             q['opcoes'],
             index=None,
             key=f"q_{i}"
-
         )
 
         if escolha is not None:

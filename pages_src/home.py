@@ -5,23 +5,17 @@ import pandas as pd
 def show_home():
 
     st.title("📊 Resultados do Quiz")
-
     df = carregar_resultados()
 
     if df.empty:
-
         st.info("Nenhum resultado ainda.")
         return
 
     # ⭐ converter data texto → datetime
     df["Data"] = pd.to_datetime(
-
         df["Data"],
-
         format="%d/%m/%Y %H:%M",
-
         errors="coerce"
-
     )
 
     # ⭐ ordenar pela data mais recente primeiro
@@ -35,17 +29,11 @@ def show_home():
 
     # formatar nota para vírgula
     df_exibir["Nota"] = df_exibir["Nota"].apply(
-
         lambda x: f"{x:.1f}".replace(".",",")
-
     )
 
     st.dataframe(
-
         df_exibir,
-
         use_container_width=True,
-
         hide_index=True
-
     )
